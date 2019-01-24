@@ -68,6 +68,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
         try:
             robot.say_text("Tap the cube so I know you are paying attention.").wait_for_completed()
             cube.wait_for_tap(timeout=20)
+
         except asyncio.TimeoutError:
             robot.say_text("No one tapped our cube.").wait_for_completed()
             print("No-one tapped our cube :-(")
