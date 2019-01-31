@@ -1,14 +1,10 @@
 # import the cozmo and image libraries
-import cozmo
-
 # import libraries for movement and asynchronous behavior
 import asyncio
-from cozmo.util import degrees, distance_mm
 
-from colors import Colors
-from woc import WOC
-import _thread
-import time
+import cozmo
+# from colorsys import Colors
+from cozmo.util import distance_mm
 
 
 def move_to_cube(robot, cube):
@@ -62,7 +58,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
 
         # Drive to 200mm away from the cube (much closer and Cozmo
         # will likely hit the cube) and then stop.
-        moveToCube(robot, cube)
+        move_to_cube(robot, cube)
 
         cube.set_lights(Colors.BLUE)
         try:
