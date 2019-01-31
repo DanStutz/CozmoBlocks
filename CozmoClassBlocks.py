@@ -1,33 +1,25 @@
 # import the cozmo and image libraries
+import cozmo
+
 # import libraries for movement and asynchronous behavior
 import asyncio
+from cozmo.util import degrees, distance_mm
 
-import cozmo
-# from colorsys import Colors
-from cozmo.util import distance_mm
-
-
-def move_to_cube(robot, cube):
-    action = robot.go_to_object(cube, distance_mm(200.0))
-    action.wait_for_completed()
-    robot.say_text("Moved to the cube").wait_for_completed()
-    return
-
-
-def on_object_tapped(self, event, *, obj, tap_count, tap_duration, **kw):
-    robot.say_text("The cube was tapped").wait_for_completed()
-    return
+# from colors import Colors
+# from woc import WOC
+import _thread
+import time
 
 
 def cozmo_program(robot: cozmo.robot.Robot):
     # turn backpack lights to RED
-    robot.set_all_backpack_lights(Colors.RED)
+    # robot.set_all_backpack_lights(Colors.RED)
 
     # settings for signals from Cozmo's camera
     robot.camera.image_stream_enabled = True
 
     # initially, we may not be connected to our cubes
-    cube = None
+    cubes = None
 
     # connect to the cubes
     robot.world.connect_to_cubes()
@@ -35,49 +27,37 @@ def cozmo_program(robot: cozmo.robot.Robot):
     # look around and try to find a cube
     look_around = robot.start_behavior(cozmo.behavior.BehaviorTypes.LookAroundInPlace)
 
-    # assign a block to the variable cube
-    cube = robot.world.wait_for_observed_light_cube(timeout=30)
-
     # we can adjust this to wait until 1, 2 or 3 cubes have been observed
-    # cubes = robot.world.wait_until_observe_num_objects(1, object_type = cozmo.objects.LightCube, timeout = 60)
+    cubes = robot.world.wait_until_observe_num_objects(3, object_type=cozmo.objects.LightCube, timeout=60)
 
-    robot.say_text("I found a cube").wait_for_completed()
-    print("Found cube: %s" % cube)
+    robot.say_text("I found the cubes").wait_for_completed()
+    print("Found cubes: %s" % cubes)
 
-    robot.set_all_backpack_lights(Colors.BLUE)
-
-    # Next, Cozmo will look for a cube. If there is a tap on
-    # the cube, Cozmo will change the color of the lights
-
-    if cube:
+    if cubes:
         # stop looking around
         look_around.stop()
 
-        # if a cube is found, light the cube up
-        cube.set_lights(Colors.BLUE)
-
-        # Drive to 200mm away from the cube (much closer and Cozmo
-        # will likely hit the cube) and then stop.
-        move_to_cube(robot, cube)
-
-        cube.set_lights(Colors.BLUE)
         try:
-            robot.say_text("Tap the cube so I know you are paying attention.").wait_for_completed()
-            cube.wait_for_tap(timeout=20)
+            robot.say_text("Tap a cube so I know you are paying attention.").wait_for_completed()
 
+            # wait for one of the cubes to be tapped
+            cube_tapped = robot.wait_for(cozmo.objects.EvtObjectTapped)
         except asyncio.TimeoutError:
-            robot.say_text("No one tapped our cube.").wait_for_completed()
-            print("No-one tapped our cube :-(")
+            robot.say_text("No one tapped a cube.").wait_for_completed()
+            print("No one tapped a cube :-(")
         finally:
-            cube.set_lights(Colors.RED)
-            robot.set_all_backpack_lights(Colors.RED)
-            robot.say_text("The cube was t"
-                           "apped").wait_for_completed()
+            if cube_tapped.obj.object_id == 1:
+                robot.say_text("Block 1 was tapped.").wait_for_completed()
+            elif cube_tapped.obj.object_id == 2:
+                robot.say_text("Cube 2 was tapped.").wait_for_completed()
+            elif cube_tapped.obj.object_id == 3:
+                robot.play_anim("anim_petdetection_dog_03").wait_for_completed()
 
             cozmoString = "I am tired of this program."
             robot.say_text(cozmoString).wait_for_completed()
 
-            cube.set_lights_off()
+            for cube in cubes:
+                cube.set_lights_off()
 
             return
 
