@@ -10,7 +10,6 @@ from cozmo.util import degrees, distance_mm
 import _thread
 import time
 
-
 def cozmo_program(robot: cozmo.robot.Robot):
     # turn backpack lights to RED
     # robot.set_all_backpack_lights(Colors.RED)
